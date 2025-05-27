@@ -25,6 +25,7 @@ This project is a simple RESTful API built with GoLang to manage fitness studio 
 
 ## Project structure
 
+```
 glofox/
 ├── main.go                  # Application entry point
 ├── handlers/
@@ -36,6 +37,7 @@ glofox/
 │   └── memory_store.go      # In-memory concurrent-safe data store
 ├── go.mod                   # Go module file
 └── README.md                # This file
+```
 
 ## API Documentation
 
@@ -44,39 +46,55 @@ glofox/
 ### POST /classes
 
 - Request Body: 
+```
 {
-  "name": "Pilates",
-  "start_date": "2025-06-01T00:00:00Z",
-  "end_date": "2025-06-03T00:00:00Z",
-  "capacity": 10
+  "name": "Yoga",
+  "start_date": "2025-06-01",
+  "end_date": "2025-06-05",
+  "capacity": 1
 }
+```
 
 ### API response
 
 - Status: 201 Created
-- Body 
+- Response: 
+```
 {
-  "message": "Classes created successfully"
+    "code": "0",
+    "message": "Classes created successfully for all dates",
+    "date": [
+        "2025-06-01",
+        "2025-06-02",
+        "2025-06-03",
+        "2025-06-04",
+        "2025-06-05"
+    ]
 }
-
+```
 
 ## 2. Book a Class
 
 ### POST /bookings
 
 - Request Body 
+```
 {
   "name": "Alice",
-  "date": "2025-06-02T00:00:00Z"
+  "date": "2025-06-03"
 }
+```
 
 ### API response
 
 - Status: 201 Created
-- Body
+- Response
+```
 {
-  "message": "Booking created successfully"
+    "code": "0",
+    "message": "Booking created successfully"
 }
+```
 
 ## Testing
 ### Covering create class
