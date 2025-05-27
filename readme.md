@@ -157,15 +157,26 @@ ok      glofox/handlers 0.244s
 - Example commands:
 
 ## Create class: 
-- curl -X POST http://localhost:8080/classes \
-  -H "Content-Type: application/json" \
-  -d '{"name":"Yoga","start_date":"2025-06-01T00:00:00Z","end_date":"2025-06-03T00:00:00Z","capacity":10}'
+```
+curl --location 'http://localhost:8080/classes' \
+--header 'Content-Type: application/json' \
+--data '{
+  "name": "Yoga",
+  "start_date": "2025-06-01",
+  "end_date": "2025-06-05",
+  "capacity": 1
+}'
+```
 
 ## Book a class:
-- curl -X POST http://localhost:8080/bookings \
-  -H "Content-Type: application/json" \
-  -d '{"name":"Bob","date":"2025-06-02T00:00:00Z"}'
-
+```
+curl --location 'http://localhost:8080/bookings' \
+--header 'Content-Type: application/json' \
+--data '{
+  "name": "Alice",
+  "date": "2025-06-03"
+}'
+```
 
 ## Known limitations 
 
