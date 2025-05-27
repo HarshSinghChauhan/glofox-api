@@ -6,6 +6,7 @@ import (
 	"glofox/internal/dto"
 	"glofox/models"
 	"glofox/store"
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -16,6 +17,7 @@ func CreateBookingHandler(w http.ResponseWriter, r *http.Request) {
 
 	var bookingRequest models.Booking
 	if err := json.NewDecoder(r.Body).Decode(&bookingRequest); err != nil {
+		log.Printf("Failed to decode booking request: %v", err)
 		writeError(w, http.StatusBadRequest, cc.ErrInvalidBodyCode, cc.ErrInvalidBody)
 		return
 	}
@@ -40,9 +42,12 @@ func CreateBookingHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Check if class exists
 	if !classExists(dateStr) {
+		log.Printf("Class not found for date: %s", bookingRequest.Date)
 		writeError(w, http.StatusNotFound, cc.ErrClassNotFoundCode, cc.ErrClassNotFound)
 		return
 	}
+
+	log.Printf("Booking successful for name: %s on date: %s", bookingRequest.Name, bookingRequest.Date)
 
 	// Save booking in a goroutine
 	go storeBooking(bookingRequest)

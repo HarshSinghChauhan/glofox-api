@@ -43,6 +43,7 @@ glofox/
 ├── handlers/
 │   └── class_handler_test.go    # Unit tests for class handler
 │   └── booking_handler_test.go  # Unit tests for booking handler
+|   └── utils.go
 ├── go.mod
 └── README.md
 

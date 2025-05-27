@@ -6,6 +6,7 @@ import (
 	"glofox/internal/dto"
 	"glofox/models"
 	"glofox/store"
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -23,6 +24,7 @@ func CreateClassHandler(w http.ResponseWriter, r *http.Request) {
 
 	var input classInput
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		log.Printf("Failed to decode class creation request: %v", err)
 		writeError(w, http.StatusBadRequest, cc.ErrInvalidBodyCode, cc.ErrInvalidBody)
 		return
 	}
@@ -43,6 +45,8 @@ func CreateClassHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+
+	log.Printf("Class created successfully: %s from %s to %s", input.Name, input.StartDate, input.EndDate)
 
 	// Prepare and add classes in goroutine
 	go addClassByDate(input, start, end)
