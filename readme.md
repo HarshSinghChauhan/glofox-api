@@ -35,8 +35,17 @@ glofox/
 │   └── models.go            # Data models (Class, Booking)
 ├── store/
 │   └── memory_store.go      # In-memory concurrent-safe data store
-├── go.mod                   # Go module file
-└── README.md                # This file
+├── internal/
+│   ├── const/               # Constants for log messages and error codes
+│   │   └── const.go
+│   └── dto/                 # Response DTOs
+│       └── response.go
+├── handlers/
+│   └── class_handler_test.go    # Unit tests for class handler
+│   └── booking_handler_test.go  # Unit tests for booking handler
+├── go.mod
+└── README.md
+
 ```
 
 ## API Documentation
