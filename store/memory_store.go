@@ -3,40 +3,45 @@ package store
 import (
 	"glofox/models"
 	"sync"
-	_ "time"
 )
 
 var (
-	classes  = make(map[string]models.Class)
-	bookings = make([]models.Booking, 0)
-	mu       sync.Mutex
+	Classes  = make(map[string]models.Class) // Key: date (YYYY-MM-DD)
+	Bookings = make([]models.Booking, 0)
+	Mutex    sync.Mutex
 )
 
-func AddClass(c models.Class) {
-	mu.Lock()
-	defer mu.Unlock()
-	classes[c.Name] = c
+// AddClassesByDate adds multiple classes, one per day between start and end
+func AddClassesByDate(datedClasses map[string]models.Class) {
+	Mutex.Lock()
+	defer Mutex.Unlock()
+	for date, class := range datedClasses {
+		Classes[date] = class
+	}
 }
 
-func GetClass(name string) (models.Class, bool) {
-	mu.Lock()
-	defer mu.Unlock()
-	c, exists := classes[name]
+// GetClassByDate returns class info if available on that date
+func GetClassByDate(date string) (models.Class, bool) {
+	Mutex.Lock()
+	defer Mutex.Unlock()
+	c, exists := Classes[date]
 	return c, exists
 }
 
+// ListClasses returns all scheduled classes
 func ListClasses() []models.Class {
-	mu.Lock()
-	defer mu.Unlock()
-	result := make([]models.Class, 0, len(classes))
-	for _, v := range classes {
+	Mutex.Lock()
+	defer Mutex.Unlock()
+	result := make([]models.Class, 0, len(Classes))
+	for _, v := range Classes {
 		result = append(result, v)
 	}
 	return result
 }
 
+// AddBooking stores a booking in memory
 func AddBooking(b models.Booking) {
-	mu.Lock()
-	defer mu.Unlock()
-	bookings = append(bookings, b)
+	Mutex.Lock()
+	defer Mutex.Unlock()
+	Bookings = append(Bookings, b)
 }

@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"encoding/json"
+	cc "glofox/internal/const"
+	"glofox/internal/dto"
 	"glofox/models"
 	"glofox/store"
 	"net/http"
@@ -16,39 +18,67 @@ type classInput struct {
 }
 
 func CreateClassHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	var input classInput
+
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(dto.ErrorAPIResponse{
+			StatusCode: cc.ErrInvalidBodyCode,
+			Error:      cc.ErrInvalidBody,
+		})
 		return
 	}
 
-	start, err1 := time.Parse(time.RFC3339, input.StartDate)
-	end, err2 := time.Parse(time.RFC3339, input.EndDate)
+	start, err1 := time.Parse("2006-01-02", input.StartDate)
+	end, err2 := time.Parse("2006-01-02", input.EndDate)
+
 	if err1 != nil || err2 != nil || end.Before(start) {
-		http.Error(w, "Invalid start or end date", http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(dto.ErrorAPIResponse{
+			StatusCode: cc.ErrInvalidDateRangeCode,
+			Error:      cc.ErrInvalidDateRange,
+		})
 		return
 	}
+
 	if input.Name == "" || input.Capacity <= 0 {
-		http.Error(w, "Invalid name or capacity", http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(dto.ErrorAPIResponse{
+			StatusCode: cc.ErrMissingClassNameCode,
+			Error:      cc.ErrMissingClassName,
+		})
 		return
 	}
 
-	// Generate list of dates for the class
-	dates := []time.Time{}
+	dateStrings := GenerateDateStrings(start, end)
+	classByDate := make(map[string]models.Class)
+
 	for d := start; !d.After(end); d = d.AddDate(0, 0, 1) {
-		dates = append(dates, d)
+		dateStr := d.Format("2006-01-02")
+		classByDate[dateStr] = models.Class{
+			Name:      input.Name,
+			StartDate: start,
+			EndDate:   end,
+			Capacity:  input.Capacity,
+			Dates:     []time.Time{d},
+		}
 	}
 
-	class := models.Class{
-		Name:      input.Name,
-		StartDate: start,
-		EndDate:   end,
-		Capacity:  input.Capacity,
-		Dates:     dates,
-	}
-
-	store.AddClass(class)
+	store.AddClassesByDate(classByDate)
 
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(class)
+	json.NewEncoder(w).Encode(dto.CreateSuccessAPIResponse{
+		StatusCode: cc.ApiSuccessCode,
+		Message:    cc.LogClassCreated,
+		DateRange:  dateStrings,
+	})
+}
+
+func GenerateDateStrings(start, end time.Time) []string {
+	dates := []string{}
+	for d := start; !d.After(end); d = d.AddDate(0, 0, 1) {
+		dates = append(dates, d.Format("2006-01-02"))
+	}
+	return dates
 }

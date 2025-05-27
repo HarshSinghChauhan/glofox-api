@@ -78,6 +78,44 @@ glofox/
   "message": "Booking created successfully"
 }
 
+## Testing
+### Covering create class
+
+```
+Running tool: C:\Program Files\Go\bin\go.exe test -timeout 30s -run ^TestCreateClassHandler$ glofox/handlers
+
+=== RUN   TestCreateClassHandler
+=== RUN   TestCreateClassHandler/Valid_class_creation
+--- PASS: TestCreateClassHandler/Valid_class_creation (0.00s)
+=== RUN   TestCreateClassHandler/Invalid_date_format
+--- PASS: TestCreateClassHandler/Invalid_date_format (0.00s)
+=== RUN   TestCreateClassHandler/Empty_name
+--- PASS: TestCreateClassHandler/Empty_name (0.00s)
+=== RUN   TestCreateClassHandler/Invalid_date_range_(end_before_start)
+--- PASS: TestCreateClassHandler/Invalid_date_range_(end_before_start) (0.00s)
+--- PASS: TestCreateClassHandler (0.00s)
+PASS
+ok      glofox/handlers 0.425s
+```
+
+### Covering booking class
+
+```
+Running tool: C:\Program Files\Go\bin\go.exe test -timeout 30s -run ^TestCreateBookingHandler$ glofox/handlers
+
+=== RUN   TestCreateBookingHandler
+=== RUN   TestCreateBookingHandler/Valid_booking
+--- PASS: TestCreateBookingHandler/Valid_booking (0.00s)
+=== RUN   TestCreateBookingHandler/Missing_name
+--- PASS: TestCreateBookingHandler/Missing_name (0.00s)
+=== RUN   TestCreateBookingHandler/Invalid_date_format
+--- PASS: TestCreateBookingHandler/Invalid_date_format (0.00s)
+=== RUN   TestCreateBookingHandler/Class_not_found
+--- PASS: TestCreateBookingHandler/Class_not_found (0.00s)
+--- PASS: TestCreateBookingHandler (0.00s)
+PASS
+ok      glofox/handlers 0.244s
+```
 
 ## Design and Architecture
 

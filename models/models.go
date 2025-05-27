@@ -7,10 +7,10 @@ type Class struct {
 	StartDate time.Time   `json:"start_date"`
 	EndDate   time.Time   `json:"end_date"`
 	Capacity  int         `json:"capacity"`
-	Dates     []time.Time `json:"dates"` // Derived dates between start and end
+	Dates     []time.Time `json:"dates"`
 }
 
 type Booking struct {
-	Name string    `json:"name"`
-	Date time.Time `json:"date"`
+	Name string `json:"name"`
+	Date string `json:"date"`
 }

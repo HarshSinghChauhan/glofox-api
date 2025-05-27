@@ -2,60 +2,80 @@ package handlers
 
 import (
 	"encoding/json"
+	cc "glofox/internal/const"
+	"glofox/internal/dto"
 	"glofox/models"
 	"glofox/store"
 	"net/http"
 	"time"
 )
 
-type bookingInput struct {
-	Name string `json:"name"`
-	Date string `json:"date"`
-}
-
+// CreateBookingHandler handles booking requests
 func CreateBookingHandler(w http.ResponseWriter, r *http.Request) {
-	var input bookingInput
-	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		http.Error(w, "Invalid JSON", http.StatusBadRequest)
-		return
-	}
+	var bookingRequest models.Booking
+	w.Header().Set("Content-Type", "application/json")
 
-	date, err := time.Parse(time.RFC3339, input.Date)
+	err := json.NewDecoder(r.Body).Decode(&bookingRequest)
 	if err != nil {
-		http.Error(w, "Invalid date format", http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(dto.ErrorAPIResponse{
+			StatusCode: cc.ErrInvalidBodyCode,
+			Error:      cc.ErrInvalidBody,
+		})
 		return
 	}
 
-	if input.Name == "" {
-		http.Error(w, "Name is required", http.StatusBadRequest)
+	// Validate name
+	if bookingRequest.Name == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(dto.ErrorAPIResponse{
+			StatusCode: cc.ErrMissingNameCode,
+			Error:      cc.ErrMissingName,
+		})
 		return
 	}
 
-	// Validate that at least one class exists on this date
-	found := false
-	for _, class := range store.ListClasses() {
-		for _, d := range class.Dates {
-			if d.Equal(date) {
-				found = true
-				break
-			}
-		}
-		if found {
-			break
-		}
-	}
-
-	if !found {
-		http.Error(w, "No class available on this date", http.StatusNotFound)
+	// Validate date
+	if bookingRequest.Date == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(dto.ErrorAPIResponse{
+			StatusCode: cc.ErrInvalidDateCode,
+			Error:      cc.ErrInvalidDate,
+		})
 		return
 	}
 
-	booking := models.Booking{
-		Name: input.Name,
-		Date: date,
+	bookingDate, err := time.Parse("2006-01-02", bookingRequest.Date)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(dto.ErrorAPIResponse{
+			StatusCode: cc.ErrInvalidDateFormatCode,
+			Error:      cc.ErrInvalidDateFormat,
+		})
+		return
 	}
-	store.AddBooking(booking)
+
+	dateStr := bookingDate.Format("2006-01-02")
+
+	// Lock and check for class existence
+	store.Mutex.Lock()
+	defer store.Mutex.Unlock()
+
+	if _, exists := store.Classes[dateStr]; !exists {
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(dto.ErrorAPIResponse{
+			StatusCode: cc.ErrClassNotFoundCode,
+			Error:      cc.ErrClassNotFound,
+		})
+		return
+	}
+
+	// Save booking
+	store.Bookings = append(store.Bookings, bookingRequest)
 
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(booking)
+	json.NewEncoder(w).Encode(dto.BookingSuccessAPIResponse{
+		StatusCode: cc.ApiSuccessCode,
+		Message:    cc.LogBookingSuccess,
+	})
 }
