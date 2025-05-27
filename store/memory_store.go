@@ -8,7 +8,7 @@ import (
 var (
 	Classes  = make(map[string]models.Class) // Key: date (YYYY-MM-DD)
 	Bookings = make([]models.Booking, 0)
-	Mutex    sync.Mutex
+	Mutex    = &sync.RWMutex{}
 )
 
 // AddClassesByDate adds multiple classes, one per day between start and end

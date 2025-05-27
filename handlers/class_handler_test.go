@@ -29,6 +29,26 @@ func TestCreateClassHandler(t *testing.T) {
 			expectedCode: http.StatusCreated,
 		},
 		{
+			name: "Empty class name",
+			payload: map[string]any{
+				"name":       "",
+				"start_date": "2025-05-28",
+				"end_date":   "2025-05-30",
+				"capacity":   10,
+			},
+			expectedCode: http.StatusBadRequest,
+		},
+		{
+			name: "Zero capacity",
+			payload: map[string]any{
+				"name":       "Yoga",
+				"start_date": "2025-05-28",
+				"end_date":   "2025-05-30",
+				"capacity":   0,
+			},
+			expectedCode: http.StatusBadRequest,
+		},
+		{
 			name: "Invalid date format",
 			payload: map[string]any{
 				"name":       "Yoga",
@@ -39,17 +59,7 @@ func TestCreateClassHandler(t *testing.T) {
 			expectedCode: http.StatusBadRequest,
 		},
 		{
-			name: "Empty name",
-			payload: map[string]any{
-				"name":       "",
-				"start_date": "2025-05-28",
-				"end_date":   "2025-05-30",
-				"capacity":   10,
-			},
-			expectedCode: http.StatusBadRequest,
-		},
-		{
-			name: "Invalid date range (end before start)",
+			name: "End date before start date",
 			payload: map[string]any{
 				"name":       "Yoga",
 				"start_date": "2025-05-30",
@@ -58,12 +68,22 @@ func TestCreateClassHandler(t *testing.T) {
 			},
 			expectedCode: http.StatusBadRequest,
 		},
+		{
+			name:         "Invalid body format",
+			payload:      nil, // simulate bad JSON
+			expectedCode: http.StatusBadRequest,
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			payload, _ := json.Marshal(tt.payload)
-			req := httptest.NewRequest(http.MethodPost, "/class", bytes.NewReader(payload))
+			var req *http.Request
+			if tt.payload == nil {
+				req = httptest.NewRequest(http.MethodPost, "/classes", bytes.NewBuffer([]byte("invalid-json")))
+			} else {
+				body, _ := json.Marshal(tt.payload)
+				req = httptest.NewRequest(http.MethodPost, "/classes", bytes.NewReader(body))
+			}
 			w := httptest.NewRecorder()
 
 			CreateClassHandler(w, req)

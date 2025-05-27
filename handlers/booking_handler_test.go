@@ -11,9 +11,9 @@ import (
 )
 
 func TestCreateBookingHandler(t *testing.T) {
-	// Setup a class on a specific date
 	store.Classes = make(map[string]models.Class)
 	store.Bookings = []models.Booking{}
+
 	date := "2025-05-29"
 	store.Classes[date] = models.Class{
 		Name:     "Yoga",
@@ -41,6 +41,13 @@ func TestCreateBookingHandler(t *testing.T) {
 			expectedCode: http.StatusBadRequest,
 		},
 		{
+			name: "Missing date",
+			payload: map[string]any{
+				"name": "Bob",
+			},
+			expectedCode: http.StatusBadRequest,
+		},
+		{
 			name: "Invalid date format",
 			payload: map[string]any{
 				"name": "Bob",
@@ -52,16 +59,26 @@ func TestCreateBookingHandler(t *testing.T) {
 			name: "Class not found",
 			payload: map[string]any{
 				"name": "Charlie",
-				"date": "2025-05-30",
+				"date": "2025-06-01",
 			},
 			expectedCode: http.StatusNotFound,
+		},
+		{
+			name:         "Invalid body format",
+			payload:      nil, // Will simulate by passing invalid JSON
+			expectedCode: http.StatusBadRequest,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			payload, _ := json.Marshal(tt.payload)
-			req := httptest.NewRequest(http.MethodPost, "/booking", bytes.NewReader(payload))
+			var req *http.Request
+			if tt.payload == nil {
+				req = httptest.NewRequest(http.MethodPost, "/booking", bytes.NewBuffer([]byte("invalid-json")))
+			} else {
+				body, _ := json.Marshal(tt.payload)
+				req = httptest.NewRequest(http.MethodPost, "/booking", bytes.NewReader(body))
+			}
 			w := httptest.NewRecorder()
 
 			CreateBookingHandler(w, req)
